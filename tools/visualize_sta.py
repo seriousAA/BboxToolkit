@@ -191,45 +191,72 @@ def main():
 
         if labels.size > 0:
             max_label = max(max_label, labels.max())
+
+            for i in range(labels.max()+1):
+                if shown_names[i] not in avg_data:
+                    avg_data[shown_names[i]] = {'sizes':[], 'nums':[], 'size_vars':[]}
+                bbox = bt.bbox2type(bboxes[labels == i], 'obb')
+                if bbox.size > 0:
+                    avg_data[shown_names[i]]['sizes'].append(float(np.mean(bbox[:,2]*bbox[:,3])))
+                    avg_data[shown_names[i]]['size_vars'].append(float(np.std(bbox[:,2]*bbox[:,3])))
+                    avg_data[shown_names[i]]['nums'].append(bbox.shape[0])
+            avg_data['summary']['sizes'].append(float(np.mean(bboxes[:, 2] * bboxes[:, 3])))
+            avg_data['summary']['size_vars'].append(float(np.std(bboxes[:, 2] * bboxes[:, 3])))
+        avg_data['summary']['nums'].append(labels.size)
+                    
+
         tasks.append((imgpath, out_file, bboxes, labels, scores))
 
-    if args.colors == 'random':
-        args.colors = bt.random_colors(max_label + 1)
-
-    if args.random_vis:
-        shuffle(tasks)
-
-    if args.save_dir and (not osp.exists(args.save_dir)):
-        os.makedirs(args.save_dir)
-
-    if args.show_off:
-        plt.switch_backend('Agg')
-
-    manager = Manager()
-    _vis_func = partial(single_vis,
-                        btype=args.shown_btype,
-                        class_names=shown_names,
-                        colors=args.colors,
-                        thickness=args.thickness,
-                        text_off=args.text_off,
-                        font_size=args.font_size,
-                        show_off=args.show_off,
-                        wait_time=args.wait_time,
-                        lock=manager.Lock(),
-                        prog=manager.Value('i', 0),
-                        total=len(tasks))
-    if args.show_off and args.vis_nproc > 1:
-        pool = Pool(args.vis_nproc)
-        pool.map(_vis_func, tasks)
-        pool.close()
-    else:
-        list(map(_vis_func, tasks))
+    for k in avg_data:
+        for id in avg_data[k]:
+            plt.figure()
+            plt.hist(avg_data[k][id], bins=100, range=(0,int(np.mean(avg_data[k][id])+3*np.std(avg_data[k][id]))))
+            plt.title(k+'_'+id)
+            if args.save_dir:
+                plt.savefig(osp.join(args.save_dir, k + '_' + id + '.png'))
+            # plt.show()
 
     if args.save_dir:
-        arg_dict = vars(args)
-        arg_dict.pop('base_json', None)
-        with open(osp.join(args.save_dir, 'vis_config.json'), 'w') as f:
-            json.dump(arg_dict, f, indent=4)
+        with open(osp.join(args.save_dir, 'avg_data.json'), 'w') as f:
+            json.dump(avg_data, f, indent=4)
+
+    # if args.colors == 'random':
+    #     args.colors = bt.random_colors(max_label + 1)
+    #
+    # if args.random_vis:
+    #     shuffle(tasks)
+    #
+    # if args.save_dir and (not osp.exists(args.save_dir)):
+    #     os.makedirs(args.save_dir)
+    #
+    # if args.show_off:
+    #     plt.switch_backend('Agg')
+    #
+    # manager = Manager()
+    # _vis_func = partial(single_vis,
+    #                     btype=args.shown_btype,
+    #                     class_names=shown_names,
+    #                     colors=args.colors,
+    #                     thickness=args.thickness,
+    #                     text_off=args.text_off,
+    #                     font_size=args.font_size,
+    #                     show_off=args.show_off,
+    #                     wait_time=args.wait_time,
+    #                     lock=manager.Lock(),
+    #                     prog=manager.Value('i', 0),
+    #                     total=len(tasks))
+    # if args.show_off and args.vis_nproc > 1:
+    #     pool = Pool(args.vis_nproc)
+    #     pool.map(_vis_func, tasks)
+    #     pool.close()
+    # else:
+    #     list(map(_vis_func, tasks))
+    #
+    # if args.save_dir:
+    #     arg_dict = vars(args)
+    #     arg_dict.pop('base_json', None)
+    #     with open(osp.join(args.save_dir, 'vis_config.json'), 'w') as f:
+    #         json.dump(arg_dict, f, indent=4)
 
 
 if __name__ == '__main__':
