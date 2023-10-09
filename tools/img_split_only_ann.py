@@ -193,20 +193,39 @@ def crop_and_save_img(info, windows, window_anns, img_dir, no_padding,
         patch_info['id'] = info['id'] + f'_{i:04d}'
         patch_info['ori_id'] = info['id']
 
-        patch = img[y_start:y_stop, x_start:x_stop]
+        # patch = img[y_start:y_stop, x_start:x_stop]
+        # if not no_padding:
+        #     height = y_stop - y_start
+        #     width = x_stop - x_start
+        #     if height > patch.shape[0] or width > patch.shape[1]:
+        #         padding_patch = np.empty(
+        #             (height, width, patch.shape[-1]), dtype=np.uint8)
+        #         if not isinstance(padding_value, (int, float)):
+        #             assert len(padding_value) == patch.shape[-1]
+        #         padding_patch[...] = padding_value
+        #         padding_patch[:patch.shape[0], :patch.shape[1], ...] = patch
+        #         patch = padding_patch
+        # patch_info['height'] = patch.shape[0]
+        # patch_info['width'] = patch.shape[1]
+
+        # Calculate the height and width of the patch without cropping
+        height = min(y_stop, img.shape[0]) - max(y_start, 0)
+        width = min(x_stop, img.shape[1]) - max(x_start, 0)
+
+        # Check for negative values (if the crop is entirely outside the image)
+        height = max(0, height)
+        width = max(0, width)
+
+        # Assuming padding is added
         if not no_padding:
-            height = y_stop - y_start
-            width = x_stop - x_start
-            if height > patch.shape[0] or width > patch.shape[1]:
-                padding_patch = np.empty(
-                    (height, width, patch.shape[-1]), dtype=np.uint8)
-                if not isinstance(padding_value, (int, float)):
-                    assert len(padding_value) == patch.shape[-1]
-                padding_patch[...] = padding_value
-                padding_patch[:patch.shape[0], :patch.shape[1], ...] = patch
-                patch = padding_patch
-        patch_info['height'] = patch.shape[0]
-        patch_info['width'] = patch.shape[1]
+            padding_height = y_stop - y_start
+            padding_width = x_stop - x_start
+            height = max(height, padding_height)
+            width = max(width, padding_width)
+
+        # Now, you can use 'height' and 'width' as patch dimensions
+        patch_info['height'] = height
+        patch_info['width'] = width
 
         # cv2.imwrite(osp.join(save_dir, patch_info['id']+img_ext), patch)
         patch_info['filename'] = patch_info['id'] + img_ext
