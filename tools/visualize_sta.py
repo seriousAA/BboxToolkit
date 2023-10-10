@@ -148,7 +148,7 @@ def main():
 
     shown_names = classes if args.shown_names is None \
             else bt.get_classes(args.shown_names)
-    assert len(shown_names) == len(classes)
+    # assert len(shown_names) == len(classes)
 
     if isinstance(args.ids, (list, type(None))):
         ids = args.ids
