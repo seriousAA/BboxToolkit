@@ -172,7 +172,7 @@ def get_window_obj(info, windows, iof_thr):
 
 
 def crop_and_save_img(info, windows, window_anns, img_dir, no_padding,
-                      padding_value, filter_empty, save_imgs, save_files, img_ext):
+                      padding_value, filter_empty, save_imgs, save_annos, img_ext):
     img = cv2.imread(osp.join(img_dir, info['filename']))
     patch_infos = []
     for i in range(windows.shape[0]):
