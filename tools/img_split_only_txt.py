@@ -244,7 +244,7 @@ def crop_and_save_img(info, windows, window_anns, img_dir, no_padding,
                     outline = ' '.join(list(map(str, obj['bboxes'][idx])))
                     diffs = str(
                         obj['diffs'][idx]) if not obj['trunc'][idx] else '2'
-                    outline = outline + ' ' + obj['labels'][idx] + ' ' + diffs
+                    outline = outline + ' ' + str(obj['labels'][idx]) + ' ' + diffs
                     f_out.write(outline + '\n')
 
     return patch_infos
