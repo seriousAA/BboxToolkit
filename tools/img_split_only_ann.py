@@ -6,7 +6,6 @@ import time
 import json
 import logging
 import argparse
-import codecs
 import datetime
 import itertools
 import numpy as np
@@ -172,7 +171,7 @@ def get_window_obj(info, windows, iof_thr):
 
 
 def crop_and_save_img(info, windows, window_anns, img_dir, no_padding,
-                      padding_value, filter_empty, save_imgs, save_annos, img_ext):
+                      padding_value, filter_empty, save_dir, img_ext):
     img = cv2.imread(osp.join(img_dir, info['filename']))
     patch_infos = []
     for i in range(windows.shape[0]):
@@ -194,51 +193,55 @@ def crop_and_save_img(info, windows, window_anns, img_dir, no_padding,
         patch_info['id'] = info['id'] + f'_{i:04d}'
         patch_info['ori_id'] = info['id']
 
-        patch = img[y_start:y_stop, x_start:x_stop]
-        if not no_padding:
-            height = y_stop - y_start
-            width = x_stop - x_start
-            if height > patch.shape[0] or width > patch.shape[1]:
-                padding_patch = np.empty(
-                    (height, width, patch.shape[-1]), dtype=np.uint8)
-                if not isinstance(padding_value, (int, float)):
-                    assert len(padding_value) == patch.shape[-1]
-                padding_patch[...] = padding_value
-                padding_patch[:patch.shape[0], :patch.shape[1], ...] = patch
-                patch = padding_patch
-        patch_info['height'] = patch.shape[0]
-        patch_info['width'] = patch.shape[1]
+        # patch = img[y_start:y_stop, x_start:x_stop]
+        # if not no_padding:
+        #     height = y_stop - y_start
+        #     width = x_stop - x_start
+        #     if height > patch.shape[0] or width > patch.shape[1]:
+        #         padding_patch = np.empty(
+        #             (height, width, patch.shape[-1]), dtype=np.uint8)
+        #         if not isinstance(padding_value, (int, float)):
+        #             assert len(padding_value) == patch.shape[-1]
+        #         padding_patch[...] = padding_value
+        #         padding_patch[:patch.shape[0], :patch.shape[1], ...] = patch
+        #         patch = padding_patch
+        # patch_info['height'] = patch.shape[0]
+        # patch_info['width'] = patch.shape[1]
 
-        cv2.imwrite(osp.join(save_imgs, patch_info['id']+img_ext), patch)
+        # Calculate the height and width of the patch without cropping
+        height = min(y_stop, img.shape[0]) - max(y_start, 0)
+        width = min(x_stop, img.shape[1]) - max(x_start, 0)
+
+        # Check for negative values (if the crop is entirely outside the image)
+        height = max(0, height)
+        width = max(0, width)
+
+        # Assuming padding is added
+        if not no_padding:
+            padding_height = y_stop - y_start
+            padding_width = x_stop - x_start
+            height = max(height, padding_height)
+            width = max(width, padding_width)
+
+        # Now, you can use 'height' and 'width' as patch dimensions
+        patch_info['height'] = height
+        patch_info['width'] = width
+
+        # cv2.imwrite(osp.join(save_dir, patch_info['id']+img_ext), patch)
         patch_info['filename'] = patch_info['id'] + img_ext
         patch_infos.append(patch_info)
-
-        bboxes_num = patch_info['ann']['bboxes'].shape[0]
-        outdir = os.path.join(save_annos, patch_info['id'] + '.txt')
-
-        with codecs.open(outdir, 'w', 'utf-8') as f_out:
-            if bboxes_num == 0:
-                pass
-            else:
-                for idx in range(bboxes_num):
-                    obj = patch_info['ann']
-                    outline = ' '.join(list(map(str, obj['bboxes'][idx])))
-                    diffs = str(
-                        obj['diffs'][idx]) if not obj['trunc'][idx] else '2'
-                    outline = outline + ' ' + str(obj['labels'][idx]) + ' ' + diffs
-                    f_out.write(outline + '\n')
 
     return patch_infos
 
 
 def single_split(arguments, sizes, gaps, img_rate_thr, iof_thr, no_padding,
-                 padding_value, filter_empty, save_imgs, save_annos, img_ext, lock,
+                 padding_value, filter_empty, save_dir, img_ext, lock,
                  prog, total, logger):
     info, img_dir = arguments
     windows = get_sliding_window(info, sizes, gaps, img_rate_thr)
     window_anns = get_window_obj(info, windows, iof_thr)
     patch_infos = crop_and_save_img(info, windows, window_anns, img_dir, no_padding,
-                                    padding_value, filter_empty, save_imgs, save_annos, img_ext)
+                                    padding_value, filter_empty, save_dir, img_ext)
     assert patch_infos or (filter_empty and info['ann']['bboxes'].size == 0)
 
     lock.acquire()
@@ -288,7 +291,7 @@ def main():
     save_imgs = osp.join(args.save_dir, 'images')
     save_files = osp.join(args.save_dir, 'annfiles')
     os.makedirs(save_imgs)
-    os.makedirs(osp.join(save_files, 'json'))
+    os.makedirs(save_files)
     logger = setup_logger(save_files)
 
     print('Loading original data!!!')
@@ -318,8 +321,7 @@ def main():
                      no_padding=args.no_padding,
                      padding_value=padding_value,
                      filter_empty=args.filter_empty,
-                     save_imgs=save_imgs,
-                     save_annos=save_files,
+                     save_dir=save_imgs,
                      img_ext=args.save_ext,
                      lock=manager.Lock(),
                      prog=manager.Value('i', 0),
@@ -341,12 +343,12 @@ def main():
     print('Save information of splitted dataset!!!')
     arg_dict = vars(args)
     arg_dict.pop('base_json', None)
-    with open(osp.join(save_files, 'json/split_config.json'), 'w') as f:
+    with open(osp.join(save_files, 'split_config.json'), 'w') as f:
         json.dump(arg_dict, f, indent=4)
         json_str = json.dumps(arg_dict, indent=4)
         logger.info(json_str)
-    bt.save_pkl(osp.join(save_files, 'json/ori_annfile.pkl'), infos, classes)
-    bt.save_pkl(osp.join(save_files, 'json/patch_annfile.pkl'), patch_infos, classes)
+    bt.save_pkl(osp.join(save_files, 'ori_annfile.pkl'), infos, classes)
+    bt.save_pkl(osp.join(save_files, 'patch_annfile.pkl'), patch_infos, classes)
 
 
 if __name__ == '__main__':
