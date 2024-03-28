@@ -74,7 +74,7 @@ def main():
         gt_bboxes = gt_info['ann']['bboxes']
         gt_labels = gt_info['ann']['labels']
         diffs = gt_info['ann'].get(
-            'diffs', np.zeros(gt_bboxes.shape[0], dtype=np.int))
+            'diffs', np.zeros(gt_bboxes.shape[0], dtype=np.int64))
         gt_ann = {}
         if args.ign_diff > 0:
             gt_ann['bboxes_ignore'] = gt_bboxes[diffs == 1]

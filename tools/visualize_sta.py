@@ -178,7 +178,7 @@ def main():
             scores = ann.get('scores', None)
         else:
             bboxes = np.zeros((0, 4), dtype=np.float)
-            labels = np.zeros((0, ), dtype=np.int)
+            labels = np.zeros((0, ), dtype=np.int64)
             scores = None
 
         if (scores is not None) and (args.score_thr > 0):
