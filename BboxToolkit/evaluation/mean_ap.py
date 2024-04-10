@@ -335,7 +335,7 @@ def print_map_summary(mean_ap,
                 f'{recalls[i, j]:.3f}', f'{aps[i, j]:.3f}'
             ]
             table_data.append(row_data)
-        table_data.append(['mAP', '', '', '', f'{mean_ap[i]:.3f}'])
+        table_data.append(['mAP', '', '', '', f'{mean_ap[i]:.5f}'])
         table = AsciiTable(table_data)
         table.inner_footing_row_border = True
         print('\n' + table.table)
