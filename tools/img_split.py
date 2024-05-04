@@ -16,9 +16,6 @@ from math import ceil
 from functools import partial, reduce
 from multiprocessing import Pool, Manager
 
-cv2.setNumThreads(1)
-
-
 def add_parser(parser):
     #argument for processing
     parser.add_argument('--base_json', type=str, default=None,
@@ -214,19 +211,19 @@ def crop_and_save_img(info, windows, window_anns, img_dir, no_padding,
         patch_infos.append(patch_info)
 
         bboxes_num = patch_info['ann']['bboxes'].shape[0]
-        outdir = os.path.join(save_annos, patch_info['id'] + '.txt')
+        # outdir = os.path.join(save_annos, patch_info['id'] + '.txt')
 
-        with codecs.open(outdir, 'w', 'utf-8') as f_out:
-            if bboxes_num == 0:
-                pass
-            else:
-                for idx in range(bboxes_num):
-                    obj = patch_info['ann']
-                    outline = ' '.join(list(map(str, obj['bboxes'][idx])))
-                    diffs = str(
-                        obj['diffs'][idx]) if not obj['trunc'][idx] else '2'
-                    outline = outline + ' ' + str(obj['labels'][idx]) + ' ' + diffs
-                    f_out.write(outline + '\n')
+        # with codecs.open(outdir, 'w', 'utf-8') as f_out:
+        #     if bboxes_num == 0:
+        #         pass
+        #     else:
+        #         for idx in range(bboxes_num):
+        #             obj = patch_info['ann']
+        #             outline = ' '.join(list(map(str, obj['bboxes'][idx])))
+        #             diffs = str(
+        #                 obj['diffs'][idx]) if not obj['trunc'][idx] else '2'
+        #             outline = outline + ' ' + str(obj['labels'][idx]) + ' ' + diffs
+        #             f_out.write(outline + '\n')
 
     return patch_infos
 
@@ -288,7 +285,7 @@ def main():
     save_imgs = osp.join(args.save_dir, 'images')
     save_files = osp.join(args.save_dir, 'annfiles')
     os.makedirs(save_imgs)
-    os.makedirs(osp.join(save_files, 'json'))
+    os.makedirs(save_files)
     logger = setup_logger(save_files)
 
     print('Loading original data!!!')
@@ -341,12 +338,12 @@ def main():
     print('Save information of splitted dataset!!!')
     arg_dict = vars(args)
     arg_dict.pop('base_json', None)
-    with open(osp.join(save_files, 'json/split_config.json'), 'w') as f:
+    with open(osp.join(save_files, 'split_config.json'), 'w') as f:
         json.dump(arg_dict, f, indent=4)
         json_str = json.dumps(arg_dict, indent=4)
         logger.info(json_str)
-    bt.save_pkl(osp.join(save_files, 'json/ori_annfile.pkl'), infos, classes)
-    bt.save_pkl(osp.join(save_files, 'json/patch_annfile.pkl'), patch_infos, classes)
+    bt.save_pkl(osp.join(save_files, 'ori_annfile.pkl'), infos, classes)
+    bt.save_pkl(osp.join(save_files, 'patch_annfile.pkl'), patch_infos, classes)
 
 
 if __name__ == '__main__':
