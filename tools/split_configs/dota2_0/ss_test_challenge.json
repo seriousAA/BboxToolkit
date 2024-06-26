@@ -1,0 +1,29 @@
+{
+    "nproc": 40,
+    "load_type": "dota",
+    "img_dirs": [
+        "/home/liyuqiu/RS-PCT/data_1/DOTA/test_challenge_ori/"
+    ],
+    "ann_dirs": null,
+    "classes": "dota2.0",
+    "prior_annfile": null,
+    "merge_type": "addition",
+    "sizes": [
+        1024
+    ],
+    "gaps": [
+        200
+    ],
+    "rates": [
+        1.0
+    ],
+    "img_rate_thr": 0.6,
+    "iof_thr": 0.7,
+    "no_padding": false,
+    "padding_value": [
+        104, 116, 124
+    ],
+    "filter_empty": false,
+    "save_dir": "/home/liyuqiu/RS-PCT/data_1/DOTA/DOTA-v2.0_all/test_challenge/",
+    "save_ext": ".png"
+}
