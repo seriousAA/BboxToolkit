@@ -9,7 +9,7 @@
         "/home/liyuqiu/data/DOTA-v2.0/train/labelTxt-v2.0/DOTA-v2.0_train",
         "/home/liyuqiu/data/DOTA-v2.0/val/labelTxt-v2.0/DOTA-v2.0_val"
     ],
-    "classes": "dota1.0",
+    "classes": "dota2.0",
     "prior_annfile": null,
     "merge_type": "addition",
     "sizes": [
