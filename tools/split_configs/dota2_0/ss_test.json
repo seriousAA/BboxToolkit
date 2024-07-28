@@ -2,7 +2,7 @@
     "nproc": 20,
     "load_type": "dota",
     "img_dirs": [
-        "data/DOTA2_0/test/images/"
+        "data/DOTA2_0/test_dev/images/"
     ],
     "ann_dirs": null,
     "classes": "dota2.0",
@@ -24,6 +24,6 @@
         104, 116, 124
     ],
     "filter_empty": false,
-    "save_dir": "data/split_ss_dota2_0/test/",
+    "save_dir": "data/DOTA/DOTA-v2.0_all/test_dev/",
     "save_ext": ".png"
 }

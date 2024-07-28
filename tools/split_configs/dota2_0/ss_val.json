@@ -26,6 +26,6 @@
         104, 116, 124
     ],
     "filter_empty": false,
-    "save_dir": "data/split_ss_dota2_0/val/",
+    "save_dir": "data/DOTA/DOTA-v2.0_all/val/",
     "save_ext": ".png"
 }
