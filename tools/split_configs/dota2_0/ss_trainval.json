@@ -2,12 +2,10 @@
     "nproc": 20,
     "load_type": "dota",
     "img_dirs": [
-        "data/DOTA-v2.0/train/images/",
-        "data/DOTA-v2.0/val/images/"
+        "data/DOTA/DOTA-v2.0_ori/trainval/images/"
     ],
     "ann_dirs": [
-        "data/DOTA-v2.0/train/labelTxt-v2.0/",
-        "data/DOTA-v2.0/val/labelTxt-v2.0/"
+        "data/DOTA/DOTA-v2.0_ori/trainval/labelTxt/"
     ],
     "classes": "dota2.0",
     "prior_annfile": null,
