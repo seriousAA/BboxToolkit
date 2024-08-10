@@ -60,7 +60,7 @@ dataset_aliases = {
     'VOC': ['VOC', 'voc'],
 }
 
-img_exts = ['.jpg', '.JPG', '.png', '.tif', '.bmp']
+img_exts = ['.jpg', '.JPG', 'jpeg', '.png', '.tif', '.tiff', '.bmp']
 
 
 def read_img_info(imgpath):
