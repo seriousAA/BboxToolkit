@@ -53,6 +53,25 @@ def _load_dota_single(imgfile, img_dir, ann_dir, cls2lbl):
 
 def _load_dota_txt(txtfile, cls2lbl):
     gsd, bboxes, labels, diffs = None, [], [], []
+    
+    # Check for meta file in '../meta' relative to ann_dir
+    if txtfile is not None:
+        meta_dir = osp.join(osp.dirname(osp.dirname(txtfile)), 'meta')
+        if osp.isdir(meta_dir):
+            meta_file = osp.join(meta_dir, osp.basename(txtfile))
+            if osp.isfile(meta_file):
+                with open(meta_file, 'r') as f:
+                    for line in f:
+                        line = line.strip()
+                        if line.startswith('gsd:'):
+                            num = line.split('gsd:')[-1].strip()
+                            try:
+                                gsd = float(num) if num.lower() != 'none' else None
+                            except ValueError:
+                                gsd = None
+                            break  # Found gsd, no need to continue
+    
+    # Original txt file processing
     if txtfile is None:
         pass
     elif not osp.isfile(txtfile):
@@ -61,11 +80,13 @@ def _load_dota_txt(txtfile, cls2lbl):
         with open(txtfile, 'r') as f:
             for line in f:
                 if line.startswith('gsd'):
-                    num = line.split(':')[-1]
-                    try:
-                        gsd = float(num)
-                    except ValueError:
-                        gsd = None
+                    # Only use gsd from txt file if not already found in meta file
+                    if gsd is None:
+                        num = line.split(':')[-1]
+                        try:
+                            gsd = float(num)
+                        except ValueError:
+                            gsd = None
                     continue
 
                 items = line.split(' ')

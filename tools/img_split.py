@@ -11,7 +11,7 @@ import datetime
 import itertools
 import numpy as np
 import os.path as osp
-
+import random
 from math import ceil
 from functools import partial, reduce
 from multiprocessing import Pool, Manager
@@ -184,6 +184,15 @@ def crop_and_save_img(info, windows, window_anns, img_dir, no_padding,
 
         window = windows[i]
         x_start, y_start, x_stop, y_stop = window.tolist()
+        
+        # # Calculate the width and height of the patch
+        # patch_width = x_stop - x_start
+        # patch_height = y_stop - y_start
+        
+        # # If the average of width and height is less than 800, there is a 90% chance to skip it
+        # if (patch_width + patch_height) / 2 < 800 and random.random() < 0.9:
+        #     continue  # Skip this iteration and move to the next
+
         ann['bboxes'] = bt.translate(ann['bboxes'], -x_start, -y_start)
         patch_info['ann'] = ann
         patch_info['x_start'] = x_start
