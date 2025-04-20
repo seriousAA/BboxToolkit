@@ -45,31 +45,33 @@ def _load_dota_single(imgfile, img_dir, ann_dir, cls2lbl):
     imgpath = osp.join(img_dir, imgfile)
     width, height = imsize(imgpath)
     txtfile = None if ann_dir is None else osp.join(ann_dir, img_id+'.txt')
-    content = _load_dota_txt(txtfile, cls2lbl)
+    # Check for meta file in '../meta' relative to image directory
+    meta_dir = osp.join(osp.dirname(img_dir), 'meta')
+    if osp.isdir(meta_dir):
+        meta_file = osp.join(meta_dir, img_id+'.txt')
+        content = _load_dota_txt(txtfile, cls2lbl, meta_file=meta_file)
+    else:
+        content = _load_dota_txt(txtfile, cls2lbl)
 
     content.update(dict(width=width, height=height, filename=imgfile, id=img_id))
     return content
 
 
-def _load_dota_txt(txtfile, cls2lbl):
+def _load_dota_txt(txtfile, cls2lbl, meta_file=None):
     gsd, bboxes, labels, diffs = None, [], [], []
     
-    # Check for meta file in '../meta' relative to ann_dir
-    if txtfile is not None:
-        meta_dir = osp.join(osp.dirname(osp.dirname(txtfile)), 'meta')
-        if osp.isdir(meta_dir):
-            meta_file = osp.join(meta_dir, osp.basename(txtfile))
-            if osp.isfile(meta_file):
-                with open(meta_file, 'r') as f:
-                    for line in f:
-                        line = line.strip()
-                        if line.startswith('gsd:'):
-                            num = line.split('gsd:')[-1].strip()
-                            try:
-                                gsd = float(num) if num.lower() != 'none' else None
-                            except ValueError:
-                                gsd = None
-                            break  # Found gsd, no need to continue
+    if meta_file is not None:
+        if osp.isfile(meta_file):
+            with open(meta_file, 'r') as f:
+                for line in f:
+                    line = line.strip()
+                    if line.startswith('gsd:'):
+                        num = line.split('gsd:')[-1].strip()
+                        try:
+                            gsd = float(num) if num.lower() != 'none' else None
+                        except ValueError:
+                            gsd = None
+                        break  # Found gsd, no need to continue
     
     # Original txt file processing
     if txtfile is None:
