@@ -1,11 +1,13 @@
 {
-    "nproc": 40,
+    "nproc": 20,
     "load_type": "dota",
     "img_dirs": [
-        "data/dota_2.0_gsd/test_challenge_ori/images"
+        "data/dota_2.0_gsd/trainval_ori/images/"
     ],
-    "ann_dirs": null,
-    "classes": "dota2.0",
+    "ann_dirs": [
+        "data/dota_2.0_gsd/trainval_ori/labelTxt/"
+    ],
+    "classes": "dota2_0",
     "prior_annfile": null,
     "merge_type": "addition",
     "sizes": [
@@ -24,6 +26,6 @@
         104, 116, 124
     ],
     "filter_empty": false,
-    "save_dir": "data/dota_2.0_gsd/test_challenge_split/",
+    "save_dir": "data/dota_2.0_gsd/trainval_split/",
     "save_ext": ".png"
 }
