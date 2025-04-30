@@ -12,4 +12,5 @@ setup(name='BboxToolkit',
           'shapely',
           'tqdm',
           'scipy',
-          'numpy'])
+          'numpy',
+          'ninja'])
