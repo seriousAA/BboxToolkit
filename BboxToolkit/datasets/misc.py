@@ -111,6 +111,8 @@ def get_classes(alias_or_list):
 
 
 def change_cls_order(contents, old_classes, new_classes):
+    if isinstance(new_classes, str):
+        new_classes = get_classes(new_classes)
     for n_c, o_c in zip(new_classes, old_classes):
         if n_c != o_c:
             break
@@ -132,8 +134,64 @@ def change_cls_order(contents, old_classes, new_classes):
                     content['ann'][k] = v[inds]
                 except TypeError:
                     content['ann'][k] = [v[i] for i in inds]
+            content['ann']['labels'] = new_labels[new_labels != -1]
         else:
             content['ann']['labels'] = new_labels
+
+
+def remove_cls_from(contents, old_classes, to_remove):
+    """
+    Remove specified class(es) from annotations and update remaining class labels.
+    
+    Args:
+        contents: List of dicts where each dict contains an 'ann' key with annotations.
+                 Each 'ann' should contain 'labels' (class indices) and other annotation fields.
+        old_classes: List of original class names/IDs.
+        to_remove: Class name or list of class names to remove.
+    
+    Returns:
+        Updated contents with specified classes removed and labels reindexed.
+        New list of class names with removed classes excluded.
+    """
+    # Convert single class to list for uniform handling
+    if isinstance(to_remove, str):
+        to_remove = [to_remove]
+    
+    # Create new class list by removing specified classes
+    new_classes = [cls for cls in old_classes if cls not in to_remove]
+    
+    # Early exit if nothing to remove
+    if len(new_classes) == len(old_classes):
+        return contents, old_classes
+    
+    # Create mapping from old class indices to new indices (-1 for removed classes)
+    cls_to_new_idx = {cls: idx for idx, cls in enumerate(new_classes)}
+    label_mapper = np.array([
+        cls_to_new_idx.get(cls, -1) for cls in old_classes
+    ], dtype=np.int64)
+    
+    # Process each content item
+    for content in contents:
+        ann = content['ann']
+        old_labels = ann['labels']
+        new_labels = label_mapper[old_labels]
+        
+        # Find indices of annotations to keep (where label != -1)
+        keep_mask = (new_labels != -1)
+        keep_indices = np.nonzero(keep_mask)[0]
+        
+        # Filter all annotation fields
+        for key, value in content['ann'].items():
+            try:
+                # For array-like values
+                content['ann'][key] = value[keep_indices]
+            except TypeError:
+                # For list-like values
+                content['ann'][key] = [value[i] for i in keep_indices]
+        # Update labels
+        content['ann']['labels'] = new_labels[keep_mask]
+    
+    return contents, new_classes
 
 
 def merge_prior_contents(bases, priors, merge_type='addition'):

@@ -214,3 +214,63 @@ def save_dota_submission(save_dir, id_list, dets_list, task='Task1', classes=Non
                              zipfile.ZIP_DEFLATED) as t:
             for f in files:
                 t.write(f, osp.split(f)[-1])
+
+def save_dota_submission_ori_classes(save_dir, id_list, dets_list, task='Task1', classes=None, ori_classes=None, with_zipfile=True):
+    assert task in ['Task1', 'Task2']
+    classes = get_classes('DOTA' if classes is None else classes)
+    
+    if ori_classes is not None:
+        if isinstance(ori_classes, str):
+            ori_classes = get_classes(ori_classes)
+        extra_classes = [cls for cls in ori_classes if cls not in classes]
+    else:
+        extra_classes = []
+    all_classes = classes + extra_classes
+    
+    if osp.exists(save_dir):
+        raise ValueError(f'The save_dir should be a non-exist path, but {save_dir} is existing')
+    os.makedirs(save_dir)
+    
+    # Create files for all classes
+    files = [osp.join(save_dir, task+'_'+cls+'.txt') for cls in all_classes]
+    file_objs = [open(f, 'w') for f in files]
+    
+    file_written = [False] * len(all_classes)  # Track if any detection is written
+    
+    # Write detections to files
+    for img_id, dets_per_cls in zip(id_list, dets_list):
+        for cls_idx, (f, dets) in enumerate(zip(file_objs[:len(classes)], dets_per_cls)):
+            if dets.size > 0:
+                bboxes, scores = dets[:, :-1], dets[:, -1]
+                
+                if task == 'Task1':
+                    if get_bbox_type(bboxes) == 'poly' and bboxes.shape[-1] != 8:
+                        bboxes = bbox2type(bboxes, 'obb')
+                    bboxes = bbox2type(bboxes, 'poly')
+                else:
+                    bboxes = bbox2type(bboxes, 'hbb')
+                
+                for bbox, score in zip(bboxes, scores):
+                    txt_element = [img_id, str(score)] + ['%.2f'%(p) for p in bbox]
+                    f.writelines(' '.join(txt_element)+'\n')
+                    file_written[cls_idx] = True
+    
+    # Add placeholder for empty txt files
+    # Choose first image ID as the placeholder
+    placeholder_img_id = id_list[0] if id_list else "P0006"
+    placeholder_line = f"{placeholder_img_id} 0.00 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0\n"
+    
+    # Check if any file is empty and add placeholder
+    for cls_idx, f in enumerate(file_objs):
+        if not file_written[cls_idx]:
+            f.write(placeholder_line)
+
+    for f in file_objs:
+        f.close()
+
+    if with_zipfile:
+        target_name = osp.split(save_dir)[-1]
+        with zipfile.ZipFile(osp.join(save_dir, target_name+'.zip'), 'w',
+                             zipfile.ZIP_DEFLATED) as t:
+            for f in files:
+                t.write(f, osp.split(f)[-1])
