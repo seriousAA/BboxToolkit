@@ -225,7 +225,7 @@ def save_dota_submission_ori_classes(save_dir, id_list, dets_list, task='Task1',
         extra_classes = [cls for cls in ori_classes if cls not in classes]
     else:
         extra_classes = []
-    all_classes = classes + extra_classes
+    all_classes = classes + tuple(extra_classes)
     
     if osp.exists(save_dir):
         raise ValueError(f'The save_dir should be a non-exist path, but {save_dir} is existing')
