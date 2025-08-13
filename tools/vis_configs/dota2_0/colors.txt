@@ -1,4 +1,4 @@
-#FF8000 $large_vehicle
+#FF8000 $large-vehicle
 #937374 $swimming-pool
 #0000FF $helicopter
 #00FF00 $bridge

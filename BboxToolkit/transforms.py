@@ -36,7 +36,7 @@ def rectpoly2obb(polys):
 
     x = polys[..., 0::2].mean(-1)
     y = polys[..., 1::2].mean(-1)
-    center = np.stack([x, y], axis=-1).expand_dims(-2)
+    center = np.stack([x, y], axis=-1)[..., None, :]
     center_polys = polys.reshape(*polys.shape[:-1], 4, 2) - center
     rotate_polys = np.matmul(center_polys, Matrix.swapaxes(-1, -2))
 
@@ -48,7 +48,7 @@ def rectpoly2obb(polys):
     h = ymax - ymin
 
     obboxes = np.stack([x, y, w, h, theta], axis=-1)
-
+    return regular_obb(obboxes)
 
 
 def poly2hbb(polys):
