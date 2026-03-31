@@ -103,7 +103,7 @@ def parse_args():
     assert len(args.sizes) == 1 or len(args.rates) == 1
     assert args.save_ext in bt.img_exts
     assert args.iof_thr >= 0 and args.iof_thr < 1
-    assert args.iof_thr >= 0 and args.iof_thr <= 1
+    assert args.img_rate_thr >= 0 and args.img_rate_thr <= 1
     assert not osp.exists(args.save_dir), \
             f'{osp.join(args.save_dir)} already exists'
     args.save_dir = abspath(args.save_dir)
