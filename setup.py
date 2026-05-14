@@ -13,4 +13,7 @@ setup(name='BboxToolkit',
           'tqdm',
           'scipy',
           'numpy<2.0',
-          'ninja'])
+          'ninja',
+          'setuptools<65.5.0',
+          'mkl<=2024.0',
+          'intel-openmp<=2024.0'])
